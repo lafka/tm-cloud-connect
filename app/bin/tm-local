@@ -1,0 +1,71 @@
+#!/usr/bin/env node
+
+var cli = require('commander');
+var tty = require('../src/tty');
+var net = require('net');
+
+var defaults = {
+	httpendpoint: "localhost"
+};
+
+cli.version('0.1.0')
+	.option('-r, --baudrate <rate>', 'The TTY baudrate to use')
+	.option('-t, --tty', 'The serial device to use')
+	.option('-a, --api', 'The API to use, either http or transparent', String, 'http')
+	.option('-p, --port <port>', 'The port to use for transparent connection [7001]', Number, 7001)
+	.option('-v, --verbose', 'Be verbose');
+
+cli.command('list')
+	.description('List available devices')
+	.action(function(device, remote) {
+		console.log(tty.list());
+	});
+
+cli.command('foreground <device> [remote]')
+	.description('Start in foreground')
+	.action(function(device, remote) {
+		var client, port;
+
+		remote = remote || defaults.httpendpoint;
+
+		port = tty.subscribe(device, function(buf) {
+			if (cli.verbose) {
+				console.log("UART: %s", buf.toString('hex')
+					.split(/(..)/)
+					.filter(function(p) { return p !== ""; })
+					.join(" "));
+			}
+
+			client.write(buf);
+		}, {}, function() {
+			client = net.connect(7001, remote);
+			client.setKeepAlive(true, 30000);
+			client.on('data', function(remotebuf) {
+				if (cli.verbose) {
+					console.log("SOCK: %s", remotebuf.toString('hex')
+						.split(/(..)/)
+						.filter(function(p) { return p !== ""; })
+						.join(" "));
+				}
+
+				port.write(remotebuf);
+			});
+		});
+	});
+
+cli.command('start <device> [remote]')
+	.description('Start the application in background')
+	.action(function(device, remote) {
+		remote = remote || defaults.httpendpoint;
+		console.log("init background connection of %s to %s", device, remote);
+	});
+
+cli.command('stop')
+	.description('Stop all services')
+	.action(function() {
+		console.log("Stop all of them");
+	});
+
+setTimeout(function() {
+	cli.parse(process.argv)
+}, 100);

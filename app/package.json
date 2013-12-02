@@ -1,0 +1,38 @@
+{
+  "name": "tm-cloud-connect",
+  "version": "0.1.0",
+  "description": "Connecting your Tinymesh networks",
+  "keywords": [
+    "server",
+    "connect",
+    "tinymesh"
+  ],
+  "author": "Olav Frengstad <olav@tiny-mesh.com>",
+  "preferGlobal": true,
+  "homepage": "https://cloud.tiny-mesh.com/local",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tinymesh/tm-cloud-connect.git"
+  },
+  "dependencies": {
+    "nodewebkit": "*",
+    "serialport": "*",
+    "commander": "*"
+  },
+  "bin": {
+    "serve": "./bin/tm-local"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-node-webkit-builder": "~0.1.11"
+  },
+  "js-flags": "--harmony_proxies --harmony_collections",
+  "webkit": {
+    "plugin": true
+  },
+  "window": {
+    "width": 800,
+    "height": 600
+  },
+  "main": "index.html"
+}
