@@ -21,7 +21,7 @@ exports.subscribe = function(tty, callback, opts, open, close) {
 				rbuf = new Buffer(120);
 				p = 0;
 				timer = undefined;
-			}, 100000/19200);
+			}, (100000/19200)*2);
 
 			buf.copy(rbuf, p);
 			p += buf.length;

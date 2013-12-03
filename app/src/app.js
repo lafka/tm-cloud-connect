@@ -45,44 +45,53 @@ angular.module('tmconnect', [])
 			return output;
 		};
 
+		var mutex = false;
+		$scope.append= function(content) {
+			while (mutex) {}
+
+			$scope.output += content;
+			var pre = document.getElementById('term');
+			pre.scrollTop = pre.scrollHeight;
+
+			mutex = false;
+		};
+
 		$scope.$on('settty', function(ev, dev) {
 			if ($scope.client) {
-				$scope.output += "# Info: Closing existing socket\r\n";
+				$scope.append("# Info: Closing existing socket\r\n");
 				$scope.client.end();
 			}
 
-			$scope.output += "# Info: Loading TTY @ " + dev + "\r\n";
+			$scope.append("# Info: Loading TTY @ " + dev + "\r\n");
 
 			$scope.port = tty.subscribe(dev, function(buf) {
 				$scope.client.write(buf);
 				$scope.$apply(function() {
-					$scope.output += "\r\nUart Received:\r\n";
-					$scope.output += $scope.dump(buf.toString('ascii')) + "\r\n";
+					$scope.append("\r\nUart Received:\r\n" + $scope.dump(buf.toString('ascii')) + "\r\n");
 				});
 			}, {}, function() {
-				$scope.output += "# Info: Successfully attached to tty";
+				$scope.append("# Info: Successfully attached to tty\r\n");
 				$scope.client = net.connect(7001, remote);
 				$scope.client.setKeepAlive(true, 3000);
-	
-				$scope.output += "# Info: Connecting to " + remote + ":" + 7001 + "\r\n";
-	
+
+				$scope.append("# Info: Connecting to " + remote + ":" + 7001 + "\r\n");
+
 				$scope.client.on('data', function(buf) {
 					$scope.port.write(buf);
 					$scope.$apply(function() {
-						$scope.output += "\r\nSocket Received:\r\n";
-						$scope.output += $scope.dump(buf.toString('ascii')) + "\r\n";
+						$scope.append("\r\nSocket Received:\r\n" + $scope.dump(buf.toString('ascii')) + "\r\n");
 					});
 				});
-	
+
 				$scope.client.on('error', function(err) {
 					$scope.$apply(function() {
-						$scope.output += "\r\nAn error occured, trying to reconnect\r\n";
+						$scope.append("\r\nAn error occured, trying to reconnect\r\n");
 					});
 				});
-	
+
 				$scope.client.on('close', function() {
 					$scope.$apply(function() {
-						$scope.output += "# Info: Socket closed\r\n";
+						$scope.append("# Info: Socket closed\r\n");
 					});
 				});
 			});
